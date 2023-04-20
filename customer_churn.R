@@ -8,7 +8,7 @@ library(randomForest)
 library(party)
 library(caret)
 
-churn <- read.csv('C:\\Users\\Jcai\\Documents\\class\\BUS421\\06 machine learning\\excercise\\Churn.csv')
+churn <- read.csv('C:\\Users\\Uname\\Downloads\\Churn.csv') #<---- Change to user data file path
 str(churn)
 
 sapply(churn, function(x) sum(is.na(x)))
@@ -41,15 +41,12 @@ group_tenure <- function(tenure){
 }
 
 churn$tenure_group <- sapply(churn$tenure,group_tenure)
-churn$tenure_group <- as.factor(churn$tenure_group)              #convert to factor
+churn$tenure_group <- as.factor(churn$tenure_group)              
 
-
-#Change the values in column “SeniorCitizen” from 0 or 1 to “No” or “Yes”.
 churn$SeniorCitizen <- as.factor(mapvalues(churn$SeniorCitizen,
                                            from=c("0","1"),
                                            to=c("No", "Yes")))
 
-#change character features to factors
 churn$Churn <- as.factor(churn$Churn)
 churn$gender <- as.factor(churn$gender)
 churn$Partner <- as.factor(churn$Partner)
@@ -61,16 +58,12 @@ churn$Contract <- as.factor(churn$Contract)
 churn$PaperlessBilling <- as.factor(churn$PaperlessBilling)
 churn$PaymentMethod <- as.factor(churn$PaymentMethod)
 
-
-### split train test set 70% train 30% test
-
 intrain<- createDataPartition(churn$Churn,p=0.7,list=FALSE)
 set.seed(2017)
 training<- churn[intrain,]
 testing<- churn[-intrain,]
 str(training)
 
-#build a tentative simple tree
 tree <- ctree(Churn~Contract+tenure_group+PaperlessBilling, training)
 plot(tree)
 
@@ -78,19 +71,14 @@ pred_tree <- predict(tree, testing)
 print("Confusion Matrix for Decision Tree"); 
 table(Predicted = pred_tree, Actual = testing$Churn)
 
-# calculate the decision tree acuracy
-
 p1 <- predict(tree, training)
 tab1 <- table(Predicted = p1, Actual = training$Churn)
 tab2 <- table(Predicted = pred_tree, Actual = testing$Churn)
 print(paste('Decision Tree Accuracy',sum(diag(tab2))/sum(tab2)))
 
-
-## random forest
 rfModel <- randomForest(Churn ~., data = training, ntree=200)
 print(rfModel)
 
-#tuning RF by adjusting number of trees
 rfModel2 <- randomForest(Churn ~., data = training, ntree=1000)
 print(rfModel2)
 
